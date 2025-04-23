@@ -1,0 +1,3 @@
+from retico_object_permanence.cozmo_object_permanence import *
+
+from retico_object_permanence.version import __version__
