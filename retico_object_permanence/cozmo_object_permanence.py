@@ -5,21 +5,23 @@ Object Permanence Module
 This module adds perceived objects to Cozmo's NavMemoryMap
 """
 
-import collections
 import math
-
 from collections import deque
 from datetime import datetime
 from pathlib import Path
-
 import numpy as np
 import threading
 import time
 from cozmo.util import Pose, degrees
+import logging
 
-from retico_core import AbstractModule
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+from retico_core import AbstractModule, UpdateType, UpdateMessage
 from retico_core.dialogue import GenericDictIU
-
+from retico_core.text import SpeechRecognitionIU
 from retico_vision.vision import DetectedObjectsIU
 from retico_wacnlu.common import GroundedFrameIU
 
@@ -50,9 +52,12 @@ class CozmoObjectPermanenceModule(AbstractModule):
         self.current_behavior = None
         self.robot_start_position = robot.pose
 
-    def process_iu(self, input_iu):
-        self.queue.clear() # TODO: Not certain if this provides value for this scenario
-        self.queue.append(input_iu)
+    def process_update(self, update_message):
+        for iu, ut in update_message:
+            if ut != UpdateType.ADD:
+                continue
+            else:
+                self.queue.append(iu)
 
     def go_to_object(self, object_name):
         object_pose = None
@@ -159,7 +164,7 @@ class CozmoObjectPermanenceModule(AbstractModule):
                 self.tracked_objects[object_label] = [{'robot_pose': robot_pose, 'object_pose': fixed_object.pose, 'object_name': object_label, 'object_id': fixed_object.object_id}]
             self.robot.say_text(object_label, play_excited_animation=False, use_cozmo_voice=True, in_parallel=True, num_retries=1).wait_for_completed()
 
-            um = retico_core.UpdateMessage.from_iu(output_iu, retico_core.UpdateType.ADD)
+            um = UpdateMessage.from_iu(output_iu, UpdateType.ADD)
             self.append(um)
 
     def prepare_run(self):
