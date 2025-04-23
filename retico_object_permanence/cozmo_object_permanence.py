@@ -5,7 +5,6 @@ Object Permanence Module
 This module adds perceived objects to Cozmo's NavMemoryMap
 """
 
-import math
 from collections import deque
 from datetime import datetime
 from pathlib import Path
@@ -20,10 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 from retico_core import AbstractModule, UpdateType, UpdateMessage
-from retico_core.dialogue import GenericDictIU
 from retico_core.text import SpeechRecognitionIU
 from retico_vision.vision import DetectedObjectsIU
-from retico_wacnlu.common import GroundedFrameIU
 
 class CozmoObjectPermanenceModule(AbstractModule):
     @staticmethod
@@ -110,8 +107,9 @@ class CozmoObjectPermanenceModule(AbstractModule):
 
             # TODO: Move this logic out of the module -- use DM instead
             if isinstance(input_iu, SpeechRecognitionIU):
-                logger.info(f"Input IU text: {input_iu.text}")
+                print(input_iu.get_text())
                 input_text = input_iu.text.strip().lower()
+                logger.info(f"Input IU text: {input_text}")
                 if "pause" in input_text:
                     self.stop_execution()
                 elif "explore" in input_text:
